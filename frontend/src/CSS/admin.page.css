@@ -1,0 +1,21 @@
+.task-container {
+    padding: 24px;
+  }
+  
+  .task-header {
+    margin-bottom: 24px;
+  }
+  
+  .task-table {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .create-task-dialog {
+    padding: 20px;
+  }
+  
+  .task-form-field {
+    margin-bottom: 16px;
+  }
