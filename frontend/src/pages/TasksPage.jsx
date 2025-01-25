@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useReducer } from 'react';
 import {
     Box,
     Container,
@@ -24,7 +24,7 @@ import {
     CircularProgress
 } from '@mui/material';
 import "../CSS/Task.css";
-import { Edit, Search, Sort, FilterList } from '@mui/icons-material';
+import { Edit, Search, FilterList } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 import protectedAPI from '../auth/auth.instance';
 
@@ -78,84 +78,68 @@ const StatusChip = styled(Chip)(({ status }) => ({
     })
 }));
 
-/**
- * Tasks component renders a task management interface with filtering, sorting, and status update functionalities.
- * 
- * @component
- * 
- * @example
- * return (
- *   <Tasks />
- * )
- * 
- * @description
- * This component fetches tasks from an API and allows users to filter, sort, and update the status of tasks.
- * It includes a search bar, status filter, date range filter, and sort options. The tasks are displayed in a table
- * with options to update their status. Notifications are shown for successful or failed operations.
- * 
- * @returns {JSX.Element} The rendered component.
- * 
- * @function
- * @name Tasks
- * 
- * @property {Array} tasks - The list of tasks fetched from the API.
- * @property {boolean} loading - Indicates whether the tasks are being loaded.
- * @property {Object} filters - The current filter and sort options.
- * @property {Object} updateDialog - The state for the update status dialog.
- * @property {Object} notification - The state for notifications.
- * 
- * @property {Array} statusOptions - The options for task status filter.
- * @property {Array} dateRangeOptions - The options for task date range filter.
- * @property {Array} sortOptions - The options for task sorting.
- * 
- * @property {function} fetchTasks - Fetches tasks from the API.
- * @property {function} handleUpdateStatus - Updates the status of a task.
- * @property {function} showNotification - Displays a notification.
- * @property {Array} filteredAndSortedTasks - The tasks filtered and sorted based on the current filters.
- */
-function Tasks() {
-    // States
-    const [tasks, setTasks] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [filters, setFilters] = useState({
+const statusOptions = [
+    { value: -1, label: 'All Status' },
+    { value: 0, label: 'Pending' },
+    { value: 1, label: 'In Progress' },
+    { value: 2, label: 'Completed' }
+];
+
+const dateRangeOptions = [
+    { value: 'all', label: 'All Time' },
+    { value: 'overdue', label: 'Overdue' },
+    { value: 'today', label: 'Due Today' },
+    { value: 'week', label: 'This Week' },
+    { value: 'month', label: 'This Month' }
+];
+
+const sortOptions = [
+    { value: 'dueDate', label: 'Due Date' },
+    { value: 'status', label: 'Status' },
+    { value: 'title', label: 'Title' }
+];
+
+const initialState = {
+    tasks: [],
+    loading: true,
+    filters: {
         status: -1,
         dateRange: 'all',
         searchQuery: '',
         sortBy: 'dueDate',
         sortOrder: 'asc'
-    });
-    const [updateDialog, setUpdateDialog] = useState({
+    },
+    updateDialog: {
         open: false,
         taskId: null,
         currentStatus: ''
-    });
-    const [notification, setNotification] = useState({
+    },
+    notification: {
         open: false,
         message: '',
         severity: 'success'
-    });
+    }
+};
 
-    // Options
-    const statusOptions = [
-        { value: -1, label: 'All Status' },
-        { value: 0, label: 'Pending' },
-        { value: 1, label: 'In Progress' },
-        { value: 2, label: 'Completed' }
-    ];
+function reducer(state, action) {
+    switch (action.type) {
+        case 'SET_TASKS':
+            return { ...state, tasks: action.payload, loading: false };
+        case 'SET_LOADING':
+            return { ...state, loading: action.payload };
+        case 'SET_FILTERS':
+            return { ...state, filters: { ...state.filters, ...action.payload } };
+        case 'SET_UPDATE_DIALOG':
+            return { ...state, updateDialog: { ...state.updateDialog, ...action.payload } };
+        case 'SET_NOTIFICATION':
+            return { ...state, notification: { ...state.notification, ...action.payload } };
+        default:
+            return state;
+    }
+}
 
-    const dateRangeOptions = [
-        { value: 'all', label: 'All Time' },
-        { value: 'overdue', label: 'Overdue' },
-        { value: 'today', label: 'Due Today' },
-        { value: 'week', label: 'This Week' },
-        { value: 'month', label: 'This Month' }
-    ];
-
-    const sortOptions = [
-        { value: 'dueDate', label: 'Due Date' },
-        { value: 'status', label: 'Status' },
-        { value: 'title', label: 'Title' }
-    ];
+function Tasks() {
+    const [state, dispatch] = useReducer(reducer, initialState);
 
     useEffect(() => {
         fetchTasks();
@@ -163,23 +147,23 @@ function Tasks() {
 
     const fetchTasks = async () => {
         try {
-            setLoading(true);
+            dispatch({ type: 'SET_LOADING', payload: true });
             const response = await protectedAPI.get('/tasks/my-tasks');
-            setTasks(response.data);
+            dispatch({ type: 'SET_TASKS', payload: response.data });
         } catch (error) {
             showNotification('Error fetching tasks', 'error');
         } finally {
-            setLoading(false);
+            dispatch({ type: 'SET_LOADING', payload: false });
         }
     };
 
     const handleUpdateStatus = async () => {
         try {
-            await protectedAPI.patch(`/tasks/${updateDialog.taskId}`, {
-                status: updateDialog.currentStatus
+            await protectedAPI.patch(`/tasks/${state.updateDialog.taskId}`, {
+                status: state.updateDialog.currentStatus
             });
             fetchTasks();
-            setUpdateDialog({ open: false, taskId: null, currentStatus: '' });
+            dispatch({ type: 'SET_UPDATE_DIALOG', payload: { open: false, taskId: null, currentStatus: '' } });
             showNotification('Task status updated successfully', 'success');
         } catch (error) {
             showNotification('Error updating task status', 'error');
@@ -187,61 +171,59 @@ function Tasks() {
     };
 
     const showNotification = (message, severity) => {
-        setNotification({
-            open: true,
-            message,
-            severity
-        });
+        dispatch({ type: 'SET_NOTIFICATION', payload: { open: true, message, severity } });
     };
 
-    const filteredAndSortedTasks = tasks.filter(task => {
-        if (filters.status !== -1 && task.status !== filters.status) return false;
+    const filteredAndSortedTasks = useMemo(() => {
+        return state.tasks.filter(task => {
+            if (state.filters.status !== -1 && task.status !== state.filters.status) return false;
 
-        if (filters.searchQuery) {
-            const query = filters.searchQuery.toLowerCase();
-            if (!task.title.toLowerCase().includes(query) &&
-                !task.description.toLowerCase().includes(query)) {
-                return false;
+            if (state.filters.searchQuery) {
+                const query = state.filters.searchQuery.toLowerCase();
+                if (!task.title.toLowerCase().includes(query) &&
+                    !task.description.toLowerCase().includes(query)) {
+                    return false;
+                }
             }
-        }
 
-        if (filters.dateRange !== 'all') {
-            const taskDate = new Date(task.dueDate);
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
+            if (state.filters.dateRange !== 'all') {
+                const taskDate = new Date(task.dueDate);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
 
-            switch (filters.dateRange) {
-                case 'overdue':
-                    return taskDate < today;
-                case 'today':
-                    return taskDate.toDateString() === today.toDateString();
-                case 'week':
-                    const weekLater = new Date(today);
-                    weekLater.setDate(today.getDate() + 7);
-                    return taskDate >= today && taskDate <= weekLater;
-                case 'month':
-                    const monthLater = new Date(today);
-                    monthLater.setMonth(today.getMonth() + 1);
-                    return taskDate >= today && taskDate <= monthLater;
+                switch (state.filters.dateRange) {
+                    case 'overdue':
+                        return taskDate < today;
+                    case 'today':
+                        return taskDate.toDateString() === today.toDateString();
+                    case 'week':
+                        const weekLater = new Date(today);
+                        weekLater.setDate(today.getDate() + 7);
+                        return taskDate >= today && taskDate <= weekLater;
+                    case 'month':
+                        const monthLater = new Date(today);
+                        monthLater.setMonth(today.getMonth() + 1);
+                        return taskDate >= today && taskDate <= monthLater;
+                    default:
+                        return true;
+                }
+            }
+            return true;
+        }).sort((a, b) => {
+            const sortOrder = state.filters.sortOrder === 'asc' ? 1 : -1;
+
+            switch (state.filters.sortBy) {
+                case 'dueDate':
+                    return sortOrder * (new Date(a.dueDate) - new Date(b.dueDate));
+                case 'status':
+                    return sortOrder * (a.status - b.status);
+                case 'title':
+                    return sortOrder * a.title.localeCompare(b.title);
                 default:
-                    return true;
+                    return 0;
             }
-        }
-        return true;
-    }).sort((a, b) => {
-        const sortOrder = filters.sortOrder === 'asc' ? 1 : -1;
-
-        switch (filters.sortBy) {
-            case 'dueDate':
-                return sortOrder * (new Date(a.dueDate) - new Date(b.dueDate));
-            case 'status':
-                return sortOrder * (a.status - b.status);
-            case 'title':
-                return sortOrder * a.title.localeCompare(b.title);
-            default:
-                return 0;
-        }
-    });
+        });
+    }, [state.tasks, state.filters]);
 
     return (
         <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
@@ -263,13 +245,12 @@ function Tasks() {
                             fullWidth
                             variant="outlined"
                             label="Search Tasks"
-                            value={filters.searchQuery}
-                            onChange={(e) => setFilters({ ...filters, searchQuery: e.target.value })}
+                            value={state.filters.searchQuery}
+                            onChange={(e) => dispatch({ type: 'SET_FILTERS', payload: { searchQuery: e.target.value } })}
                             InputProps={{
                                 startAdornment: <Search sx={{ color: 'text.secondary', mr: 1 }} />,
                                 className: 'filter-input',
                             }}
-
                         />
                     </Grid>
                     <Grid item xs={12} md={2}>
@@ -277,8 +258,8 @@ function Tasks() {
                             select
                             fullWidth
                             label="Status"
-                            value={filters.status}
-                            onChange={(e) => setFilters({ ...filters, status: parseInt(e.target.value) })}
+                            value={state.filters.status}
+                            onChange={(e) => dispatch({ type: 'SET_FILTERS', payload: { status: parseInt(e.target.value) } })}
                             className="filter-input"
                         >
                             {statusOptions.map((option) => (
@@ -293,8 +274,8 @@ function Tasks() {
                             select
                             fullWidth
                             label="Due Date"
-                            value={filters.dateRange}
-                            onChange={(e) => setFilters({ ...filters, dateRange: e.target.value })}
+                            value={state.filters.dateRange}
+                            onChange={(e) => dispatch({ type: 'SET_FILTERS', payload: { dateRange: e.target.value } })}
                             className="filter-input"
                         >
                             {dateRangeOptions.map((option) => (
@@ -304,28 +285,13 @@ function Tasks() {
                             ))}
                         </TextField>
                     </Grid>
-                    {/* <Grid item xs={12} md={2}>
-                        <TextField
-                            select
-                            fullWidth
-                            label="Sort By"
-                            value={filters.sortBy}
-                            onChange={(e) => setFilters({ ...filters, sortBy: e.target.value })}
-                        >
-                            {sortOptions.map((option) => (
-                                <MenuItem key={option.value} value={option.value}>
-                                    {option.label}
-                                </MenuItem>
-                            ))}
-                        </TextField>
-                    </Grid> */}
                     <Grid item xs={12} md={2}>
                         <TextField
                             select
                             fullWidth
                             label="Sort Order"
-                            value={filters.sortOrder}
-                            onChange={(e) => setFilters({ ...filters, sortOrder: e.target.value })}
+                            value={state.filters.sortOrder}
+                            onChange={(e) => dispatch({ type: 'SET_FILTERS', payload: { sortOrder: e.target.value } })}
                             className="filter-input"
                         >
                             <MenuItem value="asc" className="filter-input">Ascending</MenuItem>
@@ -347,7 +313,7 @@ function Tasks() {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {loading ? (
+                        {state.loading ? (
                             <TableRow>
                                 <TableCell colSpan={5} align="center" sx={{ py: 3 }}>
                                     <CircularProgress />
@@ -357,7 +323,7 @@ function Tasks() {
                             <TableRow>
                                 <TableCell colSpan={5} align="center" sx={{ py: 3 }}>
                                     <Typography variant="body1" color="textSecondary" className="task-content">
-                                        {filters.searchQuery || filters.status !== -1 || filters.dateRange !== 'all'
+                                        {state.filters.searchQuery || state.filters.status !== -1 || state.filters.dateRange !== 'all'
                                             ? 'No tasks found matching your filters'
                                             : 'No tasks assigned yet'}
                                     </Typography>
@@ -391,10 +357,9 @@ function Tasks() {
                                             variant="outlined"
                                             color="primary"
                                             startIcon={<Edit />}
-                                            onClick={() => setUpdateDialog({
-                                                open: true,
-                                                taskId: task._id,
-                                                currentStatus: task.status
+                                            onClick={() => dispatch({
+                                                type: 'SET_UPDATE_DIALOG',
+                                                payload: { open: true, taskId: task._id, currentStatus: task.status }
                                             })}
                                             size="small"
                                         >
@@ -409,8 +374,8 @@ function Tasks() {
             </StyledTableContainer>
 
             <Dialog
-                open={updateDialog.open}
-                onClose={() => setUpdateDialog({ open: false, taskId: null, currentStatus: '' })}
+                open={state.updateDialog.open}
+                onClose={() => dispatch({ type: 'SET_UPDATE_DIALOG', payload: { open: false, taskId: null, currentStatus: '' } })}
             >
                 <DialogTitle>Update Task Status</DialogTitle>
                 <DialogContent>
@@ -419,10 +384,10 @@ function Tasks() {
                         fullWidth
                         margin="dense"
                         label="Status"
-                        value={updateDialog.currentStatus}
-                        onChange={(e) => setUpdateDialog({
-                            ...updateDialog,
-                            currentStatus: parseInt(e.target.value)
+                        value={state.updateDialog.currentStatus}
+                        onChange={(e) => dispatch({
+                            type: 'SET_UPDATE_DIALOG',
+                            payload: { currentStatus: parseInt(e.target.value) }
                         })}
                     >
                         {statusOptions.filter(option => option.value !== -1).map((option) => (
@@ -433,7 +398,7 @@ function Tasks() {
                     </TextField>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setUpdateDialog({ open: false, taskId: null, currentStatus: '' })}>
+                    <Button onClick={() => dispatch({ type: 'SET_UPDATE_DIALOG', payload: { open: false, taskId: null, currentStatus: '' } })}>
                         Cancel
                     </Button>
                     <Button onClick={handleUpdateStatus} variant="contained">
@@ -443,15 +408,15 @@ function Tasks() {
             </Dialog>
 
             <Snackbar
-                open={notification.open}
+                open={state.notification.open}
                 autoHideDuration={6000}
-                onClose={() => setNotification({ ...notification, open: false })}
+                onClose={() => dispatch({ type: 'SET_NOTIFICATION', payload: { open: false } })}
             >
                 <Alert
-                    onClose={() => setNotification({ ...notification, open: false })}
-                    severity={notification.severity}
+                    onClose={() => dispatch({ type: 'SET_NOTIFICATION', payload: { open: false } })}
+                    severity={state.notification.severity}
                 >
-                    {notification.message}
+                    {state.notification.message}
                 </Alert>
             </Snackbar>
         </Container>

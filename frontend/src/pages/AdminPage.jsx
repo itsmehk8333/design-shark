@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
     Box,
     Container,
@@ -66,164 +66,142 @@ const FilterContainer = styled(Box)(({ theme }) => ({
 // Main Admin Component
 function Admin() {
     // States
-    const [tasks, setTasks] = useState([]);
-    const [users, setUsers] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [createDialog, setCreateDialog] = useState(false);
-    const [deleteDialog, setDeleteDialog] = useState({
-        open: false,
-        taskId: null
-    });
-    const [notification, setNotification] = useState({
-        open: false,
-        message: '',
-        severity: 'success'
-    });
-    const [newTask, setNewTask] = useState({
-        title: '',
-        description: '',
-        dueDate: '',
-        assignedTo: '',
-        status: 0
-    });
-    const [filters, setFilters] = useState({
-        status: -1,
-        dateRange: 'all',
-        assignedTo: '',
-        searchQuery: ''
+    const [state, setState] = useState({
+        tasks: [],
+        users: [],
+        loading: true,
+        createDialog: false,
+        deleteDialog: { open: false, taskId: null },
+        notification: { open: false, message: '', severity: 'success' },
+        newTask: { title: '', description: '', dueDate: '', assignedTo: '', status: 0 },
+        filters: { status: -1, dateRange: 'all', assignedTo: '', searchQuery: '' }
     });
 
-    // Filter Options
-    const dateRangeOptions = [
+    const dateRangeOptions = useMemo(() => [
         { value: 'all', label: 'All Time' },
         { value: 'overdue', label: 'Overdue' },
         { value: 'today', label: 'Due Today' },
         { value: 'week', label: 'Due This Week' },
         { value: 'month', label: 'Due This Month' }
-    ];
+    ], []);
 
     useEffect(() => {
         fetchTasks();
         fetchUsers();
     }, []);
 
-    // API Calls
-    const fetchTasks = async () => {
+    const fetchTasks = useCallback(async () => {
         try {
-            setLoading(true);
+            setState(prev => ({ ...prev, loading: true }));
             const response = await protectedAPI.get('/tasks/admin/tasks');
-            setTasks(response.data);
+            setState(prev => ({ ...prev, tasks: response.data, loading: false }));
         } catch (error) {
             showNotification('Error fetching tasks', 'error');
-        } finally {
-            setLoading(false);
         }
-    };
+    }, []);
 
-    const fetchUsers = async () => {
+    const fetchUsers = useCallback(async () => {
         try {
             const response = await protectedAPI.get('/users');
-            setUsers(response.data.users);
+            setState(prev => ({ ...prev, users: response.data.users }));
         } catch (error) {
             showNotification('Error fetching users', 'error');
         }
-    };
+    }, []);
 
-    const handleCreateTask = async () => {
+    const handleCreateTask = useCallback(async () => {
         try {
-            await protectedAPI.post('/tasks', newTask);
-            setCreateDialog(false);
+            await protectedAPI.post('/tasks', state.newTask);
+            setState(prev => ({ ...prev, createDialog: false }));
             fetchTasks();
             showNotification('Task created successfully', 'success');
             resetNewTask();
         } catch (error) {
             showNotification('Error creating task', 'error');
         }
-    };
+    }, [state.newTask, fetchTasks]);
 
-    const handleDeleteConfirm = async () => {
+    const handleDeleteConfirm = useCallback(async () => {
         try {
-            await protectedAPI.delete(`/tasks/${deleteDialog.taskId}`);
+            await protectedAPI.delete(`/tasks/${state.deleteDialog.taskId}`);
             fetchTasks();
-            setDeleteDialog({ open: false, taskId: null });
+            setState(prev => ({ ...prev, deleteDialog: { open: false, taskId: null } }));
             showNotification('Task deleted successfully', 'success');
         } catch (error) {
             showNotification('Error deleting task', 'error');
         }
-    };
+    }, [state.deleteDialog.taskId, fetchTasks]);
 
-    // Helper Functions
-    const showNotification = (message, severity) => {
-        setNotification({
-            open: true,
-            message,
-            severity
-        });
-    };
+    const showNotification = useCallback((message, severity) => {
+        setState(prev => ({ ...prev, notification: { open: true, message, severity } }));
+    }, []);
 
-    const resetNewTask = () => {
-        setNewTask({
-            title: '',
-            description: '',
-            dueDate: '',
-            assignedTo: '',
-            status: 0
-        });
-    };
+    const resetNewTask = useCallback(() => {
+        setState(prev => ({
+            ...prev,
+            newTask: { title: '', description: '', dueDate: '', assignedTo: '', status: 0 }
+        }));
+    }, []);
 
-    // Filter Logic
-    const filteredTasks = tasks.filter(task => {
-        if (filters.status !== -1 && task.status !== filters.status) return false;
-        if (filters.searchQuery && !task.title.toLowerCase().includes(filters.searchQuery.toLowerCase())) return false;
-        if (filters.assignedTo && task.assignedTo._id !== filters.assignedTo) return false;
+    const filteredTasks = useMemo(() => {
+        return state.tasks.filter(task => {
+            if (state.filters.status !== -1 && task.status !== state.filters.status) return false;
+            if (state.filters.searchQuery && !task.title.toLowerCase().includes(state.filters.searchQuery.toLowerCase())) return false;
+            if (state.filters.assignedTo && task.assignedTo._id !== state.filters.assignedTo) return false;
 
-        if (filters.dateRange !== 'all') {
-            const taskDate = new Date(task.dueDate);
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
+            if (state.filters.dateRange !== 'all') {
+                const taskDate = new Date(task.dueDate);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
 
-            switch (filters.dateRange) {
-                case 'overdue': return taskDate < today;
-                case 'today': return taskDate.toDateString() === today.toDateString();
-                case 'week':
-                    const weekLater = new Date(today);
-                    weekLater.setDate(today.getDate() + 7);
-                    return taskDate >= today && taskDate <= weekLater;
-                case 'month':
-                    const monthLater = new Date(today);
-                    monthLater.setMonth(today.getMonth() + 1);
-                    return taskDate >= today && taskDate <= monthLater;
-                default: return true;
+                switch (state.filters.dateRange) {
+                    case 'overdue': return taskDate < today;
+                    case 'today': return taskDate.toDateString() === today.toDateString();
+                    case 'week':
+                        const weekLater = new Date(today);
+                        weekLater.setDate(today.getDate() + 7);
+                        return taskDate >= today && taskDate <= weekLater;
+                    case 'month':
+                        const monthLater = new Date(today);
+                        monthLater.setMonth(today.getMonth() + 1);
+                        return taskDate >= today && taskDate <= monthLater;
+                    default: return true;
+                }
             }
-        }
-        return true;
-    });
+            return true;
+        });
+    }, [state.tasks, state.filters]);
 
     return (
         <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-            <Header setCreateDialog={setCreateDialog} />
-            <Filters filters={filters} setFilters={setFilters} users={users} dateRangeOptions={dateRangeOptions} />
+            <Header setCreateDialog={value => setState(prev => ({ ...prev, createDialog: value }))} />
+            <Filters
+                filters={state.filters}
+                setFilters={filters => setState(prev => ({ ...prev, filters }))}
+                users={state.users}
+                dateRangeOptions={dateRangeOptions}
+            />
             <TasksTable
-                loading={loading}
+                loading={state.loading}
                 filteredTasks={filteredTasks}
-                setDeleteDialog={setDeleteDialog}
+                setDeleteDialog={deleteDialog => setState(prev => ({ ...prev, deleteDialog }))}
             />
             <CreateTaskDialog
-                createDialog={createDialog}
-                setCreateDialog={setCreateDialog}
-                newTask={newTask}
-                setNewTask={setNewTask}
-                users={users}
+                createDialog={state.createDialog}
+                setCreateDialog={value => setState(prev => ({ ...prev, createDialog: value }))}
+                newTask={state.newTask}
+                setNewTask={newTask => setState(prev => ({ ...prev, newTask }))}
+                users={state.users}
                 handleCreateTask={handleCreateTask}
             />
             <DeleteConfirmationDialog
-                deleteDialog={deleteDialog}
-                setDeleteDialog={setDeleteDialog}
+                deleteDialog={state.deleteDialog}
+                setDeleteDialog={deleteDialog => setState(prev => ({ ...prev, deleteDialog }))}
                 handleDeleteConfirm={handleDeleteConfirm}
             />
             <Notification
-                notification={notification}
-                setNotification={setNotification}
+                notification={state.notification}
+                setNotification={notification => setState(prev => ({ ...prev, notification }))}
             />
         </Container>
     );

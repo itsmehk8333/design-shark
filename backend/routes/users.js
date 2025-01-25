@@ -7,7 +7,7 @@ const auth = require('../middleware/auth.js');
 router.get('/', auth, async (req, res) => {
     try {
         const users = await User.find({role:{$ne:"admin"}}).select('-password');
-        res.json({
+        res.status(200).json({
             success: true,
             users
         });
