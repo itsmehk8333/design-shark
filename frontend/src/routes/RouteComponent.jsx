@@ -1,7 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from '../pages/Login';
-import SignUp from '../pages/SignUp';
+import SignUp from '../pages/SignUpPage';
 import Tasks from '../pages/Tasks';
 
 import NotFound from '../pages/NotFound';
