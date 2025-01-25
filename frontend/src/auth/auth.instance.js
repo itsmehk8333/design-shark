@@ -1,8 +1,12 @@
 import axios from 'axios';
 
 // Base instance for auth (login/signup)
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+
+// console.log(baseURL)
 export const authAPI = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json'
   }
@@ -10,7 +14,7 @@ export const authAPI = axios.create({
 
 // Protected instance for authenticated requests
 const protectedAPI = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json'
   }
