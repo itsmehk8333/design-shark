@@ -10,8 +10,8 @@ import {
     Container,
 } from '@mui/material';
 import { Person, Email, Lock } from '@mui/icons-material';
-import '/src/CSS/Signup.css'
 import { authAPI } from '../auth/auth.instance';
+import "../CSS/SignUp.css"
 
 function SignUp() {
     const navigate = useNavigate();
