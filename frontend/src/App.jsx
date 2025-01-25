@@ -3,10 +3,11 @@ import { useLocation } from 'react-router-dom'
 import RouteComponent from './routes/RouteComponent'
 import Navbar from './component/Navabar'
 import protectedAPI from './auth/auth.instance'
+import { configDotenv } from 'dotenv'
 
 function App() {
   const location = useLocation();
-  
+
   // Define public routes where navbar should be hidden
   const publicRoutes = ['/login', '/register'];
   const showNavbar = !publicRoutes.includes(location.pathname);
