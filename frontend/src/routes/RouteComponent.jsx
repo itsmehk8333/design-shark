@@ -54,7 +54,7 @@ function RouteComponent() {
                 } 
             />
             <Route 
-                path="/signup" 
+                path="/register" 
                 element={
                     <PublicRoute>
                         <SignUp />

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+
+
 import {
   Box,
   Paper,
@@ -32,18 +34,18 @@ function Login() {
     try {
       const response = await authAPI.post('/auth/login', formData);
       const { accessToken, user, message } = response.data;
-      
+
       // Store auth data
       localStorage.setItem('token', accessToken);
       localStorage.setItem('user', JSON.stringify(user));
       localStorage.setItem('role', user.role);
-      
+
       // Show success message
       console.log(message);
-      
+
       // Redirect based on role
       navigate(user.role === 'admin' ? '/admin/tasks' : '/tasks');
-      
+
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed');
     }
@@ -54,7 +56,7 @@ function Login() {
     <div className="login-container">
       <Container maxWidth="sm">
         <Paper className="login-paper" elevation={3}>
-          <Typography variant="h4" className="login-title">
+          <Typography variant="h4" className="login-title poppins-medium">
             Welcome Back
           </Typography>
           {error && (
@@ -106,6 +108,21 @@ function Login() {
             >
               Login
             </Button>
+            <Box sx={{ mt: 3, textAlign: 'center' }}>
+              <Typography variant="body1" color="textSecondary">
+                Don't have an account?{' '}
+                <Link
+                  to="/register"
+                  style={{
+                    color: '#2563eb',
+                    textDecoration: 'none',
+                    fontWeight: 500
+                  }}
+                >
+                  Register here
+                </Link>
+              </Typography>
+            </Box>
           </Box>
         </Paper>
       </Container>

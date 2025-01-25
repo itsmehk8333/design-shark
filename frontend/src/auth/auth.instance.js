@@ -41,17 +41,14 @@ protectedAPI.interceptors.response.use(
       console.log(41)
       originalRequest._retry = true;
       try {
-        setTimeout(() => {
           localStorage.clear();
           window.location.href = '/login';
-        }, 2000)
         return Promise.reject(error);
       } catch (error) {
         // Handle refresh token failure (logout user)
-        setTimeout(() => {
           localStorage.clear();
           window.location.href = '/login';
-        }, 2000)
+        
         return Promise.reject(error);
       }
     }

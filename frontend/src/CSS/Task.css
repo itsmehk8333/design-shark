@@ -1,0 +1,60 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600&family=Roboto:wght@400;500&display=swap');
+
+.task-content {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+    color: #555;
+    line-height: 1.6;
+  }
+
+  .filter-heading {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    font-size: 18px;
+    color: #222;
+    margin-bottom: 16px;
+  }
+  
+  .filter-label {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    color: #333;
+  }
+  
+  .filter-input {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+    color: #555;
+  }
+  
+  .filter-input .MuiOutlinedInput-root {
+    border-radius: 8px;
+  }
+  
+  .filter-input .MuiMenuItem-root {
+    font-family: 'Roboto', sans-serif;
+    font-size: 14px;
+  }
+  
+  .my-tasks-heading {
+    font-family: 'Roboto', sans-serif; /* Use a modern, readable font */
+    font-weight: 700; /* Bold for emphasis */
+    font-size: 32px; /* Larger size for prominence */
+    color: #333; /* Darker color for visibility */
+    margin-bottom: 16px; /* Adds space below the heading */
+    text-align: center; /* Center align for balance */
+    letter-spacing: 1px; /* Slight spacing for a refined look */
+    text-transform: capitalize; /* Makes it more visually appealing */
+  }
+  
+  /* For smaller screens */
+  @media (max-width: 600px) {
+    .my-tasks-heading {
+      font-size: 28px; /* Slightly smaller on mobile */
+      margin-bottom: 12px; /* Reduced space below */
+    }
+  }
+  

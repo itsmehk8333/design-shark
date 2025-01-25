@@ -23,6 +23,7 @@ import {
     Chip,
     CircularProgress
 } from '@mui/material';
+import "../CSS/Task.css";
 import { Edit, Search, Sort, FilterList } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 import protectedAPI from '../auth/auth.instance';
@@ -210,12 +211,14 @@ function Tasks() {
     return (
         <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
             <StyledHeader>
-                <Typography variant="h4">My Tasks</Typography>
+                <Typography variant="h4" className="my-tasks-heading">My Tasks</Typography>
             </StyledHeader>
 
             <FilterContainer>
                 <Box sx={{ mb: 2 }}>
-                    <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                      className="filter-heading"
+                    >
                         <FilterList /> Filters & Sort
                     </Typography>
                 </Box>
@@ -228,8 +231,10 @@ function Tasks() {
                             value={filters.searchQuery}
                             onChange={(e) => setFilters({ ...filters, searchQuery: e.target.value })}
                             InputProps={{
-                                startAdornment: <Search sx={{ color: 'text.secondary', mr: 1 }} />
+                                startAdornment: <Search sx={{ color: 'text.secondary', mr: 1 }} />,
+                                className: 'filter-input',
                             }}
+                            
                         />
                     </Grid>
                     <Grid item xs={12} md={2}>
@@ -239,9 +244,10 @@ function Tasks() {
                             label="Status"
                             value={filters.status}
                             onChange={(e) => setFilters({ ...filters, status: parseInt(e.target.value) })}
-                        >
+                         className="filter-input"
+                       >
                             {statusOptions.map((option) => (
-                                <MenuItem key={option.value} value={option.value}>
+                                <MenuItem key={option.value} value={option.value}   className="filter-input">
                                     {option.label}
                                 </MenuItem>
                             ))}
@@ -254,9 +260,10 @@ function Tasks() {
                             label="Due Date"
                             value={filters.dateRange}
                             onChange={(e) => setFilters({ ...filters, dateRange: e.target.value })}
+                             className="filter-input"
                         >
                             {dateRangeOptions.map((option) => (
-                                <MenuItem key={option.value} value={option.value}>
+                                <MenuItem key={option.value} value={option.value} className="filter-input">
                                     {option.label}
                                 </MenuItem>
                             ))}
@@ -284,9 +291,10 @@ function Tasks() {
                             label="Sort Order"
                             value={filters.sortOrder}
                             onChange={(e) => setFilters({ ...filters, sortOrder: e.target.value })}
+                             className="filter-input"
                         >
-                            <MenuItem value="asc">Ascending</MenuItem>
-                            <MenuItem value="desc">Descending</MenuItem>
+                            <MenuItem value="asc" className="filter-input">Ascending</MenuItem>
+                            <MenuItem value="desc" className="filter-input">Descending</MenuItem>
                         </TextField>
                     </Grid>
                 </Grid>
@@ -313,7 +321,7 @@ function Tasks() {
                         ) : filteredAndSortedTasks.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={5} align="center" sx={{ py: 3 }}>
-                                    <Typography variant="body1" color="textSecondary">
+                                    <Typography variant="body1" color="textSecondary"  className="task-content">
                                         {filters.searchQuery || filters.status !== -1 || filters.dateRange !== 'all'
                                             ? 'No tasks found matching your filters'
                                             : 'No tasks assigned yet'}
@@ -324,8 +332,8 @@ function Tasks() {
                             filteredAndSortedTasks.map((task) => (
                                 <TableRow key={task._id}>
                                     <TableCell sx={{ fontWeight: 500 }}>{task.title}</TableCell>
-                                    <TableCell>{task.description}</TableCell>
-                                    <TableCell>
+                                    <TableCell  className="task-content">{task.description}</TableCell>
+                                    <TableCell  className="task-content">
                                         {task.dueDate ?
                                             new Date(task.dueDate).toLocaleDateString('en-US', {
                                                 year: 'numeric',

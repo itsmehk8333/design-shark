@@ -13,7 +13,10 @@ app.use(bodyParser.json());
 dotenv.config();
 
 // MongoDB connection
-mongoose.connect('mongodb://localhost:27017/designshark');
+
+const db_url = process.env.MONGODB_URL;
+console.log(process.env.MONGODB_URL);
+mongoose.connect(db_url);
 
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));

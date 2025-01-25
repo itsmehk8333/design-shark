@@ -30,7 +30,11 @@ function Navbar() {
   return (
     <AppBar position="static" sx={{ backgroundColor: '#fff', boxShadow: 1 }}>
       <Toolbar>
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1, color: '#333' }}>
+        <Typography 
+          variant="h6" 
+          component="div" 
+          sx={{ flexGrow: 1, color: '#333', fontFamily: 'Montserrat, sans-serif', fontWeight: 600 }}
+        >
           Task Manager
         </Typography>
 
@@ -39,8 +43,11 @@ function Navbar() {
             <IconButton size="large" sx={{ color: 'inherit' }}>
               <AccountCircle />
             </IconButton>
-            <Typography variant="subtitle1">
-              {user?.username} 
+            <Typography 
+              variant="subtitle1" 
+              sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 500 }}
+            >
+              {user?.username}
             </Typography>
           </Box>
 
@@ -49,6 +56,7 @@ function Navbar() {
             variant="outlined"
             startIcon={<Logout />}
             onClick={handleLogout}
+            sx={{ fontFamily: 'Roboto, sans-serif', fontWeight: 400 }}
           >
             Logout
           </Button>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import {
     Box,
     Paper,
@@ -13,23 +14,28 @@ import '../CSS/Signup.css';
 import { authAPI } from '../auth/auth.instance';
 
 function SignUp() {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         username: '',
         email: '',
         password: '',
     });
+    const [error, setError] = useState('');
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
+        setError('');
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        authAPI.post('/auth/register', formData).then((response) => {
+        try {
+            const response = await authAPI.post('/auth/register', formData);
             console.log(response.data);
+            navigate('/login');
+        } catch (err) {
+            setError(err.response?.data?.message || 'Registration failed');
         }
-        );
-        console.log(formData);
     };
 
     return (
@@ -39,6 +45,11 @@ function SignUp() {
                     <Typography variant="h4" className="signup-title">
                         Create Account
                     </Typography>
+                    {error && (
+                        <Typography color="error" align="center" sx={{ mb: 2 }}>
+                            {error}
+                        </Typography>
+                    )}
                     <Box component="form" onSubmit={handleSubmit} className="form-animation">
                         <TextField
                             className="input-field"
@@ -98,6 +109,21 @@ function SignUp() {
                         >
                             Sign Up
                         </Button>
+                        <Box sx={{ mt: 3, textAlign: 'center' }}>
+                            <Typography variant="body1" color="textSecondary">
+                                Already have an account?{' '}
+                                <Link 
+                                    to="/login" 
+                                    style={{ 
+                                        color: '#2563eb',
+                                        textDecoration: 'none',
+                                        fontWeight: 500
+                                    }}
+                                >
+                                    Login here
+                                </Link>
+                            </Typography>
+                        </Box>
                     </Box>
                 </Paper>
             </Container>
