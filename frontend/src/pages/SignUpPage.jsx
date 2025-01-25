@@ -10,7 +10,7 @@ import {
     Container,
 } from '@mui/material';
 import { Person, Email, Lock } from '@mui/icons-material';
-import '../CSS/Signup.css';
+import '/src/CSS/Signup.css'
 import { authAPI } from '../auth/auth.instance';
 
 function SignUp() {
