@@ -3,9 +3,10 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from '../pages/Login';
 import SignUp from '../pages/SignUp';
 import Tasks from '../pages/Tasks';
-import Admin from '../pages/Admin';
+
 import NotFound from '../pages/NotFound';
 import AccessDenied from '../pages/AccessDenied';
+import Admin from '../pages/AdminPage';
 
 // User Route Component
 const UserRoute = ({ children }) => {
@@ -77,7 +78,7 @@ function RouteComponent() {
                 path="/admin/tasks" 
                 element={
                     <AdminRoute>
-                        <Admin />
+                      <Admin />
                     </AdminRoute>
                 } 
             />
