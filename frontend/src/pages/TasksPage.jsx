@@ -78,6 +78,41 @@ const StatusChip = styled(Chip)(({ status }) => ({
     })
 }));
 
+/**
+ * Tasks component renders a task management interface with filtering, sorting, and status update functionalities.
+ * 
+ * @component
+ * 
+ * @example
+ * return (
+ *   <Tasks />
+ * )
+ * 
+ * @description
+ * This component fetches tasks from an API and allows users to filter, sort, and update the status of tasks.
+ * It includes a search bar, status filter, date range filter, and sort options. The tasks are displayed in a table
+ * with options to update their status. Notifications are shown for successful or failed operations.
+ * 
+ * @returns {JSX.Element} The rendered component.
+ * 
+ * @function
+ * @name Tasks
+ * 
+ * @property {Array} tasks - The list of tasks fetched from the API.
+ * @property {boolean} loading - Indicates whether the tasks are being loaded.
+ * @property {Object} filters - The current filter and sort options.
+ * @property {Object} updateDialog - The state for the update status dialog.
+ * @property {Object} notification - The state for notifications.
+ * 
+ * @property {Array} statusOptions - The options for task status filter.
+ * @property {Array} dateRangeOptions - The options for task date range filter.
+ * @property {Array} sortOptions - The options for task sorting.
+ * 
+ * @property {function} fetchTasks - Fetches tasks from the API.
+ * @property {function} handleUpdateStatus - Updates the status of a task.
+ * @property {function} showNotification - Displays a notification.
+ * @property {Array} filteredAndSortedTasks - The tasks filtered and sorted based on the current filters.
+ */
 function Tasks() {
     // States
     const [tasks, setTasks] = useState([]);
@@ -161,10 +196,10 @@ function Tasks() {
 
     const filteredAndSortedTasks = tasks.filter(task => {
         if (filters.status !== -1 && task.status !== filters.status) return false;
-        
+
         if (filters.searchQuery) {
             const query = filters.searchQuery.toLowerCase();
-            if (!task.title.toLowerCase().includes(query) && 
+            if (!task.title.toLowerCase().includes(query) &&
                 !task.description.toLowerCase().includes(query)) {
                 return false;
             }
@@ -195,7 +230,7 @@ function Tasks() {
         return true;
     }).sort((a, b) => {
         const sortOrder = filters.sortOrder === 'asc' ? 1 : -1;
-        
+
         switch (filters.sortBy) {
             case 'dueDate':
                 return sortOrder * (new Date(a.dueDate) - new Date(b.dueDate));
@@ -217,7 +252,7 @@ function Tasks() {
             <FilterContainer>
                 <Box sx={{ mb: 2 }}>
                     <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                      className="filter-heading"
+                        className="filter-heading"
                     >
                         <FilterList /> Filters & Sort
                     </Typography>
@@ -234,7 +269,7 @@ function Tasks() {
                                 startAdornment: <Search sx={{ color: 'text.secondary', mr: 1 }} />,
                                 className: 'filter-input',
                             }}
-                            
+
                         />
                     </Grid>
                     <Grid item xs={12} md={2}>
@@ -244,10 +279,10 @@ function Tasks() {
                             label="Status"
                             value={filters.status}
                             onChange={(e) => setFilters({ ...filters, status: parseInt(e.target.value) })}
-                         className="filter-input"
-                       >
+                            className="filter-input"
+                        >
                             {statusOptions.map((option) => (
-                                <MenuItem key={option.value} value={option.value}   className="filter-input">
+                                <MenuItem key={option.value} value={option.value} className="filter-input">
                                     {option.label}
                                 </MenuItem>
                             ))}
@@ -260,7 +295,7 @@ function Tasks() {
                             label="Due Date"
                             value={filters.dateRange}
                             onChange={(e) => setFilters({ ...filters, dateRange: e.target.value })}
-                             className="filter-input"
+                            className="filter-input"
                         >
                             {dateRangeOptions.map((option) => (
                                 <MenuItem key={option.value} value={option.value} className="filter-input">
@@ -291,7 +326,7 @@ function Tasks() {
                             label="Sort Order"
                             value={filters.sortOrder}
                             onChange={(e) => setFilters({ ...filters, sortOrder: e.target.value })}
-                             className="filter-input"
+                            className="filter-input"
                         >
                             <MenuItem value="asc" className="filter-input">Ascending</MenuItem>
                             <MenuItem value="desc" className="filter-input">Descending</MenuItem>
@@ -321,7 +356,7 @@ function Tasks() {
                         ) : filteredAndSortedTasks.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={5} align="center" sx={{ py: 3 }}>
-                                    <Typography variant="body1" color="textSecondary"  className="task-content">
+                                    <Typography variant="body1" color="textSecondary" className="task-content">
                                         {filters.searchQuery || filters.status !== -1 || filters.dateRange !== 'all'
                                             ? 'No tasks found matching your filters'
                                             : 'No tasks assigned yet'}
@@ -332,8 +367,8 @@ function Tasks() {
                             filteredAndSortedTasks.map((task) => (
                                 <TableRow key={task._id}>
                                     <TableCell sx={{ fontWeight: 500 }}>{task.title}</TableCell>
-                                    <TableCell  className="task-content">{task.description}</TableCell>
-                                    <TableCell  className="task-content">
+                                    <TableCell className="task-content">{task.description}</TableCell>
+                                    <TableCell className="task-content">
                                         {task.dueDate ?
                                             new Date(task.dueDate).toLocaleDateString('en-US', {
                                                 year: 'numeric',
@@ -346,8 +381,8 @@ function Tasks() {
                                     <TableCell>
                                         <StatusChip
                                             label={task.status === 0 ? "Pending" :
-                                                   task.status === 1 ? "In Progress" :
-                                                   "Completed"}
+                                                task.status === 1 ? "In Progress" :
+                                                    "Completed"}
                                             status={task.status}
                                         />
                                     </TableCell>

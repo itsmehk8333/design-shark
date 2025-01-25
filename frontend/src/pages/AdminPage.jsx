@@ -63,6 +63,7 @@ const FilterContainer = styled(Box)(({ theme }) => ({
     marginBottom: theme.spacing(3)
 }));
 
+// Main Admin Component
 function Admin() {
     // States
     const [tasks, setTasks] = useState([]);
@@ -200,245 +201,282 @@ function Admin() {
 
     return (
         <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-            {/* Header */}
-            <Box display="flex" justifyContent="space-between" mb={3}>
-                <Typography variant="h4">Task Management</Typography>
-                <Button
-                    variant="contained"
-                    startIcon={<Add />}
-                    onClick={() => setCreateDialog(true)}
-                >
-                    Create Task
-                </Button>
-            </Box>
-
-            {/* Filters */}
-            <FilterContainer>
-                <Box sx={{ mb: 2 }}>
-                    <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <FilterList /> Filters
-                    </Typography>
-                </Box>
-                <Grid container spacing={3}>
-                    <Grid item xs={12} md={3}>
-                        <TextField
-                            fullWidth
-                            variant="outlined"
-                            label="Search by Title"
-                            value={filters.searchQuery}
-                            onChange={(e) => setFilters({ ...filters, searchQuery: e.target.value })}
-                            InputProps={{
-                                startAdornment: <Search sx={{ color: 'text.secondary', mr: 1 }} />
-                            }}
-                        />
-                    </Grid>
-                    <Grid item xs={12} md={3}>
-                        <TextField
-                            select
-                            fullWidth
-                            label="Status"
-                            value={filters.status}
-                            onChange={(e) => setFilters({ ...filters, status: parseInt(e.target.value) })}
-                        >
-                            <MenuItem value={-1}>All Status</MenuItem>
-                            <MenuItem value={0}>Pending</MenuItem>
-                            <MenuItem value={1}>In Progress</MenuItem>
-                            <MenuItem value={2}>Completed</MenuItem>
-                        </TextField>
-                    </Grid>
-                    <Grid item xs={12} md={3}>
-                        <TextField
-                            select
-                            fullWidth
-                            label="Due Date"
-                            value={filters.dateRange}
-                            onChange={(e) => setFilters({ ...filters, dateRange: e.target.value })}
-                        >
-                            {dateRangeOptions.map(option => (
-                                <MenuItem key={option.value} value={option.value}>
-                                    {option.label}
-                                </MenuItem>
-                            ))}
-                        </TextField>
-                    </Grid>
-                    <Grid item xs={12} md={3}>
-                        <TextField
-                            select
-                            fullWidth
-                            label="Assigned To"
-                            value={filters.assignedTo}
-                            onChange={(e) => setFilters({ ...filters, assignedTo: e.target.value })}
-                        >
-                            <MenuItem value="">All Users</MenuItem>
-                            {users.map(user => (
-                                <MenuItem key={user._id} value={user._id}>
-                                    {user.username}
-                                </MenuItem>
-                            ))}
-                        </TextField>
-                    </Grid>
-                </Grid>
-            </FilterContainer>
-
-            {/* Tasks Table */}
-            <StyledTableContainer component={Paper}>
-                <Table>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>Title</TableCell>
-                            <TableCell>Description</TableCell>
-                            <TableCell>Due Date</TableCell>
-                            <TableCell>Assigned To</TableCell>
-                            <TableCell>Status</TableCell>
-                            <TableCell>Actions</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {loading ? (
-                            <TableRow>
-                                <TableCell colSpan={6} align="center" sx={{ py: 3 }}>
-                                    <CircularProgress />
-                                </TableCell>
-                            </TableRow>
-                        ) : filteredTasks.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={6} align="center" sx={{ py: 3 }}>
-                                    <Typography variant="body1" color="textSecondary">
-                                        No tasks found matching your filters
-                                    </Typography>
-                                </TableCell>
-                            </TableRow>
-                        ) : (
-                            filteredTasks.map((task) => (
-                                <TableRow key={task._id}>
-                                    <TableCell>{task.title}</TableCell>
-                                    <TableCell>{task.description}</TableCell>
-                                    <TableCell>
-                                        {new Date(task.dueDate).toLocaleDateString('en-US', {
-                                            year: 'numeric',
-                                            month: 'short',
-                                            day: 'numeric'
-                                        })}
-                                    </TableCell>
-                                    <TableCell>{task.assignedTo.username}</TableCell>
-                                    <TableCell>
-                                        <StatusChip
-                                            label={task.status === 0 ? "Pending" : 
-                                                   task.status === 1 ? "In Progress" : 
-                                                   "Completed"}
-                                            status={task.status}
-                                        />
-                                    </TableCell>
-                                    <TableCell>
-                                        <Button
-                                            color="error"
-                                            startIcon={<Delete />}
-                                            onClick={() => setDeleteDialog({
-                                                open: true,
-                                                taskId: task._id
-                                            })}
-                                        >
-                                            Delete
-                                        </Button>
-                                    </TableCell>
-                                </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
-            </StyledTableContainer>
-
-            {/* Create Task Dialog */}
-            <Dialog open={createDialog} onClose={() => setCreateDialog(false)}>
-                <DialogTitle>Create New Task</DialogTitle>
-                <DialogContent>
-                    <TextField
-                        margin="dense"
-                        label="Title"
-                        fullWidth
-                        required
-                        value={newTask.title}
-                        onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                    />
-                    <TextField
-                        margin="dense"
-                        label="Description"
-                        fullWidth
-                        multiline
-                        rows={4}
-                        value={newTask.description}
-                        onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-                    />
-                    <TextField
-                        margin="dense"
-                        label="Due Date"
-                        type="date"
-                        fullWidth
-                        required
-                        InputLabelProps={{ shrink: true }}
-                        value={newTask.dueDate}
-                        onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
-                    />
-                    <TextField
-                        margin="dense"
-                        label="Assign To"
-                        select
-                        fullWidth
-                        required
-                        value={newTask.assignedTo}
-                        onChange={(e) => setNewTask({ ...newTask, assignedTo: e.target.value })}
-                    >
-                        {users.map((user) => (
-                            <MenuItem key={user._id} value={user._id}>
-                                {user.username}
-                            </MenuItem>
-                        ))}
-                    </TextField>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setCreateDialog(false)}>Cancel</Button>
-                    <Button onClick={handleCreateTask} variant="contained">
-                        Create
-                    </Button>
-                </DialogActions>
-            </Dialog>
-
-            {/* Delete Confirmation Dialog */}
-            <Dialog
-                open={deleteDialog.open}
-                onClose={() => setDeleteDialog({ open: false, taskId: null })}
-            >
-                <DialogTitle>Confirm Delete</DialogTitle>
-                <DialogContent>
-                    <DialogContentText>
-                        Are you sure you want to delete this task? This action cannot be undone.
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setDeleteDialog({ open: false, taskId: null })}>
-                        Cancel
-                    </Button>
-                    <Button onClick={handleDeleteConfirm} color="error" variant="contained">
-                        Delete
-                    </Button>
-                </DialogActions>
-            </Dialog>
-
-            {/* Notifications */}
-            <Snackbar
-                open={notification.open}
-                autoHideDuration={6000}
-                onClose={() => setNotification({ ...notification, open: false })}
-            >
-                <Alert
-                    onClose={() => setNotification({ ...notification, open: false })}
-                    severity={notification.severity}
-                >
-                    {notification.message}
-                </Alert>
-            </Snackbar>
+            <Header setCreateDialog={setCreateDialog} />
+            <Filters filters={filters} setFilters={setFilters} users={users} dateRangeOptions={dateRangeOptions} />
+            <TasksTable
+                loading={loading}
+                filteredTasks={filteredTasks}
+                setDeleteDialog={setDeleteDialog}
+            />
+            <CreateTaskDialog
+                createDialog={createDialog}
+                setCreateDialog={setCreateDialog}
+                newTask={newTask}
+                setNewTask={setNewTask}
+                users={users}
+                handleCreateTask={handleCreateTask}
+            />
+            <DeleteConfirmationDialog
+                deleteDialog={deleteDialog}
+                setDeleteDialog={setDeleteDialog}
+                handleDeleteConfirm={handleDeleteConfirm}
+            />
+            <Notification
+                notification={notification}
+                setNotification={setNotification}
+            />
         </Container>
     );
 }
+
+// Header Component
+const Header = ({ setCreateDialog }) => (
+    <Box display="flex" justifyContent="space-between" mb={3}>
+        <Typography variant="h4">Task Management</Typography>
+        <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={() => setCreateDialog(true)}
+        >
+            Create Task
+        </Button>
+    </Box>
+);
+
+// Filters Component
+const Filters = ({ filters, setFilters, users, dateRangeOptions }) => (
+    <FilterContainer>
+        <Box sx={{ mb: 2 }}>
+            <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <FilterList /> Filters
+            </Typography>
+        </Box>
+        <Grid container spacing={3}>
+            <Grid item xs={12} md={3}>
+                <TextField
+                    fullWidth
+                    variant="outlined"
+                    label="Search by Title"
+                    value={filters.searchQuery}
+                    onChange={(e) => setFilters({ ...filters, searchQuery: e.target.value })}
+                    InputProps={{
+                        startAdornment: <Search sx={{ color: 'text.secondary', mr: 1 }} />
+                    }}
+                />
+            </Grid>
+            <Grid item xs={12} md={3}>
+                <TextField
+                    select
+                    fullWidth
+                    label="Status"
+                    value={filters.status}
+                    onChange={(e) => setFilters({ ...filters, status: parseInt(e.target.value) })}
+                >
+                    <MenuItem value={-1}>All Status</MenuItem>
+                    <MenuItem value={0}>Pending</MenuItem>
+                    <MenuItem value={1}>In Progress</MenuItem>
+                    <MenuItem value={2}>Completed</MenuItem>
+                </TextField>
+            </Grid>
+            <Grid item xs={12} md={3}>
+                <TextField
+                    select
+                    fullWidth
+                    label="Due Date"
+                    value={filters.dateRange}
+                    onChange={(e) => setFilters({ ...filters, dateRange: e.target.value })}
+                >
+                    {dateRangeOptions.map(option => (
+                        <MenuItem key={option.value} value={option.value}>
+                            {option.label}
+                        </MenuItem>
+                    ))}
+                </TextField>
+            </Grid>
+            <Grid item xs={12} md={3}>
+                <TextField
+                    select
+                    fullWidth
+                    label="Assigned To"
+                    value={filters.assignedTo}
+                    onChange={(e) => setFilters({ ...filters, assignedTo: e.target.value })}
+                >
+                    <MenuItem value="">All Users</MenuItem>
+                    {users.map(user => (
+                        <MenuItem key={user._id} value={user._id}>
+                            {user.username}
+                        </MenuItem>
+                    ))}
+                </TextField>
+            </Grid>
+        </Grid>
+    </FilterContainer>
+);
+
+// Tasks Table Component
+const TasksTable = ({ loading, filteredTasks, setDeleteDialog }) => (
+    <StyledTableContainer component={Paper}>
+        <Table>
+            <TableHead>
+                <TableRow>
+                    <TableCell>Title</TableCell>
+                    <TableCell>Description</TableCell>
+                    <TableCell>Due Date</TableCell>
+                    <TableCell>Assigned To</TableCell>
+                    <TableCell>Status</TableCell>
+                    <TableCell>Actions</TableCell>
+                </TableRow>
+            </TableHead>
+            <TableBody>
+                {loading ? (
+                    <TableRow>
+                        <TableCell colSpan={6} align="center" sx={{ py: 3 }}>
+                            <CircularProgress />
+                        </TableCell>
+                    </TableRow>
+                ) : filteredTasks.length === 0 ? (
+                    <TableRow>
+                        <TableCell colSpan={6} align="center" sx={{ py: 3 }}>
+                            <Typography variant="body1" color="textSecondary">
+                                No tasks found matching your filters
+                            </Typography>
+                        </TableCell>
+                    </TableRow>
+                ) : (
+                    filteredTasks.map((task) => (
+                        <TableRow key={task._id}>
+                            <TableCell>{task.title}</TableCell>
+                            <TableCell>{task.description}</TableCell>
+                            <TableCell>
+                                {new Date(task.dueDate).toLocaleDateString('en-US', {
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric'
+                                })}
+                            </TableCell>
+                            <TableCell>{task.assignedTo.username}</TableCell>
+                            <TableCell>
+                                <StatusChip
+                                    label={task.status === 0 ? "Pending" : 
+                                           task.status === 1 ? "In Progress" : 
+                                           "Completed"}
+                                    status={task.status}
+                                />
+                            </TableCell>
+                            <TableCell>
+                                <Button
+                                    color="error"
+                                    startIcon={<Delete />}
+                                    onClick={() => setDeleteDialog({
+                                        open: true,
+                                        taskId: task._id
+                                    })}
+                                >
+                                    Delete
+                                </Button>
+                            </TableCell>
+                        </TableRow>
+                    ))
+                )}
+            </TableBody>
+        </Table>
+    </StyledTableContainer>
+);
+
+// Create Task Dialog Component
+const CreateTaskDialog = ({ createDialog, setCreateDialog, newTask, setNewTask, users, handleCreateTask }) => (
+    <Dialog open={createDialog} onClose={() => setCreateDialog(false)}>
+        <DialogTitle>Create New Task</DialogTitle>
+        <DialogContent>
+            <TextField
+                margin="dense"
+                label="Title"
+                fullWidth
+                required
+                value={newTask.title}
+                onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+            />
+            <TextField
+                margin="dense"
+                label="Description"
+                fullWidth
+                multiline
+                rows={4}
+                value={newTask.description}
+                onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+            />
+            <TextField
+                margin="dense"
+                label="Due Date"
+                type="date"
+                fullWidth
+                required
+                InputLabelProps={{ shrink: true }}
+                value={newTask.dueDate}
+                onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
+            />
+            <TextField
+                margin="dense"
+                label="Assign To"
+                select
+                fullWidth
+                required
+                value={newTask.assignedTo}
+                onChange={(e) => setNewTask({ ...newTask, assignedTo: e.target.value })}
+            >
+                {users.map((user) => (
+                    <MenuItem key={user._id} value={user._id}>
+                        {user.username}
+                    </MenuItem>
+                ))}
+            </TextField>
+        </DialogContent>
+        <DialogActions>
+            <Button onClick={() => setCreateDialog(false)}>Cancel</Button>
+            <Button onClick={handleCreateTask} variant="contained">
+                Create
+            </Button>
+        </DialogActions>
+    </Dialog>
+);
+
+// Delete Confirmation Dialog Component
+const DeleteConfirmationDialog = ({ deleteDialog, setDeleteDialog, handleDeleteConfirm }) => (
+    <Dialog
+        open={deleteDialog.open}
+        onClose={() => setDeleteDialog({ open: false, taskId: null })}
+    >
+        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogContent>
+            <DialogContentText>
+                Are you sure you want to delete this task? This action cannot be undone.
+            </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+            <Button onClick={() => setDeleteDialog({ open: false, taskId: null })}>
+                Cancel
+            </Button>
+            <Button onClick={handleDeleteConfirm} color="error" variant="contained">
+                Delete
+            </Button>
+        </DialogActions>
+    </Dialog>
+);
+
+// Notification Component
+const Notification = ({ notification, setNotification }) => (
+    <Snackbar
+        open={notification.open}
+        autoHideDuration={6000}
+        onClose={() => setNotification({ ...notification, open: false })}
+    >
+        <Alert
+            onClose={() => setNotification({ ...notification, open: false })}
+            severity={notification.severity}
+        >
+            {notification.message}
+        </Alert>
+    </Snackbar>
+);
 
 export default Admin;

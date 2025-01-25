@@ -1,11 +1,11 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import Login from '../pages/Login';
+import Login from '../pages/LoginPage';
 import SignUp from '../pages/SignUpPage';
-import Tasks from '../pages/Tasks';
+import Tasks from '../pages/TasksPage';
 
-import NotFound from '../pages/NotFound';
-import AccessDenied from '../pages/AccessDenied';
+import NotFound from '../pages/NotFoundPage';
+import AccessDenied from '../pages/AccessDeniedPage';
 import Admin from '../pages/AdminPage';
 
 // User Route Component
