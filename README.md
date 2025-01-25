@@ -30,21 +30,19 @@ Clone the repository:
 React-based frontend for Design Shark platform.
 
 ## Tech Stack
-
 - React 18
 - React Router v6
 - Material-UI
 - Axios
 - Vite
-
+  
 # Install dependencies
 - cd frontend
 - npm install
-
-# Start development server
-- npm run dev
+  
 # Environment Setup
 - VITE_API_URL= "backend url"
+  
 # Running the Server 
 - npm run dev
 
